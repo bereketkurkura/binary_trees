@@ -1,174 +1,205 @@
 #include "binary_trees.h"
 
 /**
- * binary_tree_node - Insert a new node in the tree.
- *
- * @parent: Parent node.
- * @value: Value of the node.
- *
- * Return: Always 0 (Success)
+ * enqueue_item_4 - Adds an item to a queue.
+ * @queue_h: A pointer to the queue's head.
+ * @queue_t: A pointer to the queue's tail.
+ * @n: A pointer to the queue's size value.
+ * @item: The item to add to the queue.
  */
-
-binary_tree_t *binary_tree_node(binary_tree_t *parent, int value)
+void enqueue_item_4(heap_t **queue_h, heap_t **queue_t,
+	int *n, void *item)
 {
-	binary_tree_t *new_node;
+	heap_t *new_node;
 
-	new_node = malloc(sizeof(binary_tree_t));
-	if (new_node == NULL)
-		return (NULL);
-	new_node->n = value;
-	new_node->left = NULL;
-	new_node->right = NULL;
-	new_node->parent = parent;
-	return (new_node);
-}
-
-/**
- * check_new_root - checks the new root
- * @root: root
- * @new_root: new root
- * Return: node
- */
-heap_t *check_new_root(heap_t **root, heap_t *new_root)
-{
-	heap_t *head, *current;
-
-	current = *root;
-	while (1)
+	if ((queue_h != NULL) && (queue_t != NULL))
 	{
-		if (binary_tree_balance(current))
-			current = current->left;
-		else if (!binary_tree_balance(current) && current->right)
-			current = current->right;
-		else if (!binary_tree_balance(current))
-			break;
-	}
-	new_root = current, head = *root;
-	if (new_root == head)
-		free(head), new_root = NULL;
-	else if (new_root->parent == head)
-	{
-		if (head->right == new_root)
-		{
-			new_root->left = head->left, head->left->parent = new_root;
-			*root = new_root, free(head);
-		}
-		else
-		{
-			*root = new_root, free(head);
-			new_root->parent = NULL;
-			return (NULL);
-		}
-	}
-	else
-	{
-		new_root->left = head->left, new_root->left->parent = new_root;
-		new_root->right = head->right, new_root->right->parent = new_root;
-		if (new_root->parent->right == new_root)
-			new_root->parent->right = NULL;
-		else
-			new_root->parent->left = NULL;
-		*root = new_root, free(head);
-	}
-	return (new_root);
-}
-/**
- * if_check - if statement
- * @new_root: new root
- * @tmp: position
- * @current: position
- * Return: void
- */
-void if_check(heap_t *new_root, heap_t *tmp, heap_t *current)
-{
-	if (new_root->right == tmp)
-	{
-		current = tmp->left, tmp->left = new_root->left;
-		if (tmp->left)
-			tmp->left->parent = tmp;
-		new_root->left = current;
-		if (new_root->left)
-			new_root->left->parent = new_root;
-		current = tmp->right, tmp->right = new_root;
-		new_root->right = current;
-	}
-	else
-	{
-		current = tmp->right, tmp->right = new_root->right;
-		if (tmp->right)
-			tmp->right->parent = tmp;
-		new_root->right = current;
-		if (new_root->right)
-			new_root->right->parent = new_root;
-		current = tmp->left, tmp->left = new_root;
-		new_root->left = current;
+		new_node = malloc(sizeof(heap_t));
+		if (new_node == NULL)
+			return;
+		new_node->left = *queue_t;
+		new_node->right = NULL;
+		new_node->n = (item != NULL ? ((heap_t *)item)->n : -1);
+		new_node->parent = (heap_t *)item;
+		if (*queue_h == NULL)
+			*queue_h = new_node;
+		if (*queue_t != NULL)
+			(*queue_t)->right = new_node;
+		*queue_t = new_node;
+		if (n != NULL)
+			(*n)++;
 	}
 }
 
 /**
- * loop_heap - loop
- * @root: root
- * @new_root: new root
+ * dequeue_item_4 - Removes an item from a queue.
+ * @queue_h: A pointer to the queue's head.
+ * @queue_t: A pointer to the queue's tail.
+ * @n: A pointer to the queue's size value.
  *
- * Return: void
+ * Return: The value of the removed queue.
  */
-void loop_heap(heap_t **root, heap_t *new_root)
+heap_t *dequeue_item_4(heap_t **queue_h,
+	heap_t **queue_t, int *n)
 {
-	heap_t *tmp, *current = NULL;
+	heap_t *tmp0;
+	heap_t *tmp1;
+	heap_t *node = NULL;
 
-	while (new_root && (new_root->right || new_root->left))
+	if ((queue_h != NULL) && (queue_t != NULL))
 	{
-		if (new_root->right && new_root->left)
+		tmp0 = *queue_h;
+		if (tmp0 != NULL)
 		{
-			if (new_root->right->n > new_root->left->n)
-				tmp = new_root->right;
+			node = tmp0->parent;
+			if (tmp0->right != NULL)
+			{
+				tmp1 = tmp0->right;
+				tmp1->left = NULL;
+				*queue_h = tmp1;
+				free(tmp0);
+			}
 			else
-				tmp = new_root->left;
+			{
+				free(tmp0);
+				*queue_h = NULL;
+				*queue_t = NULL;
+			}
+			if (n != NULL)
+				(*n)--;
 		}
-		else if (new_root->left)
-			tmp = new_root->left;
-		else
-			tmp = new_root->right;
-		if (tmp->n > new_root->n)
-		{
-			if_check(new_root, tmp, current);
-		if (current)
-			current->parent = new_root;
+	}
+	return (node);
+}
 
-		tmp->parent = new_root->parent;
-		if (new_root->parent && new_root->parent->right == new_root)
-			new_root->parent->right = tmp;
-		else if (new_root->parent)
-			new_root->parent->left = tmp;
-		new_root->parent = tmp;
-		if (tmp && !tmp->parent)
-			*root = tmp;
+/**
+ * get_last_heap_node - Gets the last level order node \
+ * in a max binary heap tree.
+ * @root: The root of the max binary heap tree.
+ *
+ * Return: A pointer to the last level order node, otherwise NULL.
+ */
+heap_t *get_last_heap_node(const heap_t *root)
+{
+	heap_t *head = NULL, *tail = NULL;
+	heap_t *last_node = NULL, *current = NULL;
+	int n = 0;
+
+	if (root != NULL)
+	{
+		enqueue_item_4(&head, &tail, &n, (void *)root);
+		while (n > 0)
+		{
+			current = head;
+			if (current->parent != NULL)
+			{
+				last_node = current->parent;
+				if (current->parent->left != NULL)
+				{
+					enqueue_item_4(&head, &tail, &n, (void *)(current->parent->left));
+				}
+				if (current->parent->right != NULL)
+				{
+					enqueue_item_4(&head, &tail, &n, (void *)(current->parent->right));
+				}
+			}
+			dequeue_item_4(&head, &tail, &n);
 		}
-		else
-			break;
+		while (n > 0)
+			dequeue_item_4(&head, &tail, &n);
+	}
+	return (last_node);
+}
+
+/**
+ * swap_tree_node_with_parent_1 - Swaps a node in a \
+ * max binary heap tree with its parent.
+ * @node: A pointer to the node's address.
+ * @root: A pointer to the root of the tree.
+ */
+void swap_tree_node_with_parent_1(heap_t **node, heap_t **root)
+{
+	heap_t *node_copy, *p, *tmp0, *l, *r;
+
+	if ((node != NULL) && ((*node)->parent != NULL) && (root != NULL))
+	{
+		p = (*node)->parent, node_copy = *node, tmp0 = (*node)->parent->parent;
+		l = (*node)->left, r = (*node)->right;
+		if ((*node)->parent->left != *node) /* swap from the right */
+		{
+			if ((tmp0 != NULL) && (tmp0->left == (*node)->parent))
+				tmp0->left = *node;
+			if ((tmp0 != NULL) && (tmp0->right == (*node)->parent))
+				tmp0->right = *node;
+			if ((*node)->parent->left != NULL)
+				(*node)->parent->left->parent = node_copy;
+			(*node)->parent = tmp0, (*node)->left = p->left, (*node)->right = p;
+			p->parent = node_copy, p->left = l, p->right = r;
+		}
+		else /* swap from the left */
+		{
+			if ((tmp0 != NULL) && (tmp0->left == p))
+				tmp0->left = *node;
+			if ((tmp0 != NULL) && (tmp0->right == p))
+				tmp0->right = *node;
+			if ((*node)->parent->right != NULL)
+				(*node)->parent->right->parent = *node;
+			(*node)->parent = tmp0, (*node)->right = p->right, (*node)->left = p;
+			p->parent = node_copy, p->left = l, p->right = r;
+		}
+		if (l != NULL)
+			l->parent = p;
+		if (r != NULL)
+			r->parent = p;
+		if (tmp0 == NULL)
+			*root = node_copy;
 	}
 }
 
 /**
- * heap_extract - removes head
- * @root: root
+ * heap_extract - Extracts the root node of a max binary heap tree
+ * @root: A pointer to the address of the tree's root node.
  *
- * Return: value in root
+ * Return: The value of the extracted node, otherwise NULL.
  */
 int heap_extract(heap_t **root)
 {
-	heap_t *new_root = NULL;
-	int value;
+	heap_t *node, *node_l, *node_r, *tmp, *dummy;
+	int value = 0, val_l, val_r;
 
-	if (!*root)
-		return (0);
-
-	value = (*root)->n;
-	new_root = check_new_root(root, new_root);
-	if (!new_root)
-		return (value);
-	new_root->parent = NULL;
-
-	loop_heap(root, new_root);
+	if ((root != NULL) && (*root != NULL))
+	{
+		node = *root;
+		node_l = node->left;
+		node_r = node->right;
+		value = node->n;
+		tmp = get_last_heap_node(node);
+		*root = ((tmp != NULL) && (tmp->parent != NULL) ? tmp : NULL);
+		if ((tmp != NULL) && (tmp->parent != NULL))
+		{
+			if (tmp->parent->left == tmp)
+				tmp->parent->left = NULL;
+			if (tmp->parent->right == tmp)
+				tmp->parent->right = NULL;
+			tmp->parent = NULL;
+			tmp->left = (node_l != tmp ? node_l : NULL);
+			tmp->right = (node_r != tmp ? node_r : NULL);
+			if ((node_l != NULL) && (node_l != tmp))
+				node_l->parent = tmp;
+			if ((node_r != NULL) && (node_r != tmp))
+				node_r->parent = tmp;
+			while (tmp != NULL)
+			{
+				val_l = tmp->left != NULL ? tmp->left->n : tmp->n;
+				val_r = tmp->right != NULL ? tmp->right->n : tmp->n;
+				dummy = val_l > val_r ? tmp->left : tmp->right;
+				if ((dummy != NULL) && (dummy->n > dummy->parent->n))
+					swap_tree_node_with_parent_1(&dummy, root);
+				else
+					break;
+			}
+		}
+		free(node);
+	}
 	return (value);
 }
